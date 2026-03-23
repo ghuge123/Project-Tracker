@@ -1,73 +1,95 @@
-import { useStore } from "../store/useStore";
-import { useDrag } from "../hooks/useDrag";
+import { useStore, type Task, type Status } from "../store/useStore";
+import { filterTasks } from "../utils/filterTasks";
+import type { PointerEvent } from "react";
 
-const columns: ("todo" | "inprogress" | "inreview" | "done")[] = [
-  "todo",
-  "inprogress",
-  "inreview",
-  "done",
-];
+const cols: Status[] = ["todo", "inprogress", "inreview", "done"];
 
 export default function Kanban() {
-  const { tasks, updateTask } = useStore();
+  const { tasks, filters, updateTask } = useStore();
+  const data = filterTasks(tasks, filters);
 
-  const { dragging, onPointerDown } = useDrag(updateTask);
+  // ✅ Typed drag handler
+  const onPointerDown = (task: Task, e: PointerEvent) => {
+    e.preventDefault();
+
+    const up = (ev: PointerEvent) => {
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      const col = el?.closest("[data-col]")?.getAttribute("data-col") as Status | null;
+
+      if (col && col !== task.status) {
+        updateTask(task.id, { status: col });
+      }
+
+      window.removeEventListener("pointerup", up as any);
+    };
+
+    window.addEventListener("pointerup", up as any);
+  };
 
   return (
     <div className="grid grid-cols-4 gap-4">
-      {columns.map((col) => (
-        <div
-          key={col}
-          data-column={col} // ✅ IMPORTANT (for drop detection)
-          className="bg-gray-100 p-2 min-h-[400px] transition"
-        >
-          <h2 className="font-bold mb-2">{col.toUpperCase()}</h2>
+      {cols.map((c) => {
+        const columnTasks = data.filter((t) => t.status === c);
 
-          {tasks.filter((t) => t.status === col).length === 0 && (
-            <div className="text-gray-400 text-sm p-2">
-              No tasks here
-            </div>
-          )}
+        return (
+          <div
+            key={c}
+            data-col={c}
+            className="bg-gray-100 rounded-xl p-3 flex flex-col max-h-[500px]"
+          >
+            {/* Column Header */}
+            <h2 className="font-semibold text-sm mb-3 flex justify-between capitalize">
+              {c}
+              <span className="text-gray-400 text-xs">
+                {columnTasks.length}
+              </span>
+            </h2>
 
-          {tasks
-            .filter((t) => t.status === col)
-            .map((task) => (
+            {/* Empty State */}
+            {columnTasks.length === 0 && (
+              <div className="text-gray-400 text-xs text-center py-6">
+                No tasks
+              </div>
+            )}
+
+            {/* Tasks */}
+            {columnTasks.map((t) => (
               <div
-                key={task.id}
-                onPointerDown={(e) => onPointerDown(task, e)} // ✅ custom drag
-                className={`bg-white p-3 mb-2 shadow cursor-grab active:cursor-grabbing transition ${
-                  dragging?.id === task.id ? "opacity-50" : ""
-                }`}
+                key={t.id}
+                onPointerDown={(e) => onPointerDown(t, e)}
+                className="bg-white rounded-lg p-3 mb-3 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer"
               >
                 {/* Title */}
-                <div className="font-medium">{task.title}</div>
+                <div className="font-medium text-sm">{t.title}</div>
 
-                {/* Bottom row */}
-                <div className="flex justify-between items-center mt-2 text-xs">
+                {/* Bottom */}
+                <div className="flex justify-between items-center mt-3">
+                  
                   {/* Avatar */}
-                  <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center">
-                    {task.assignee}
+                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-semibold">
+                    {t.assignee}
                   </div>
 
-                  {/* Priority badge */}
+                  {/* Priority Badge */}
                   <span
-                    className={`px-2 py-1 rounded text-white ${
-                      task.priority === "critical"
-                        ? "bg-red-500"
-                        : task.priority === "high"
-                        ? "bg-orange-400"
-                        : task.priority === "medium"
-                        ? "bg-yellow-400"
-                        : "bg-green-400"
+                    className={`text-xs px-2 py-1 rounded-full font-medium ${
+                      t.priority === "critical"
+                        ? "bg-red-100 text-red-600"
+                        : t.priority === "high"
+                        ? "bg-orange-100 text-orange-600"
+                        : t.priority === "medium"
+                        ? "bg-yellow-100 text-yellow-600"
+                        : "bg-green-100 text-green-600"
                     }`}
                   >
-                    {task.priority}
+                    {t.priority}
                   </span>
                 </div>
               </div>
             ))}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </div>
   );
 }

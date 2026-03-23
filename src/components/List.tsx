@@ -1,40 +1,28 @@
-// src/components/List.tsx
 import { useState } from "react";
 import { useStore } from "../store/useStore";
+import { filterTasks } from "../utils/filterTasks";
 
-const rowHeight = 50;
+const h = 50;
 
 export default function List() {
-  const { tasks } = useStore();
-  const [scrollTop, setScrollTop] = useState(0);
+  const { tasks, filters } = useStore();
+  const data = filterTasks(tasks, filters);
 
-  const containerHeight = 400;
-  const visibleCount = Math.ceil(containerHeight / rowHeight);
-  const start = Math.floor(scrollTop / rowHeight);
+  const [top, setTop] = useState(0);
 
-  const visible = tasks.slice(start, start + visibleCount + 5);
+  const start = Math.floor(top / h);
+  const visible = data.slice(start, start + 15);
 
   return (
     <div
-      style={{ height: containerHeight, overflow: "auto" }}
-      onScroll={(e) =>
-        setScrollTop((e.target as any).scrollTop)
-      }
-      className="border"
+      className="bg-white rounded-xl shadow overflow-hidden"
+      onScroll={(e) => setTop(e.currentTarget.scrollTop)}
     >
-      <div style={{ height: tasks.length * rowHeight }}>
-        <div
-          style={{
-            transform: `translateY(${start * rowHeight}px)`,
-          }}
-        >
+      <div style={{ height: data.length * h }}>
+        <div style={{ transform: `translateY(${start * h}px)` }}>
           {visible.map((t) => (
-            <div
-              key={t.id}
-              style={{ height: rowHeight }}
-              className="border-b flex items-center px-2"
-            >
-              {t.title} | {t.priority}
+            <div key={t.id} style={{ height: h }} className="border-b px-2">
+              {t.title}
             </div>
           ))}
         </div>

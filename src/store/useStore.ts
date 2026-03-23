@@ -1,35 +1,57 @@
-// src/store/useStore.ts
 import { create } from "zustand";
+
+export type Status = "todo" | "inprogress" | "inreview" | "done";
+export type Priority = "critical" | "high" | "medium" | "low";
 
 export type Task = {
   id: string;
   title: string;
-  status: "todo" | "inprogress" | "inreview" | "done";
-  priority: "critical" | "high" | "medium" | "low";
+  status: Status;
+  priority: Priority;
   assignee: string;
   startDate?: number;
   dueDate: number;
 };
 
+export type Filters = {
+  status: Status[];
+  priority: Priority[];
+  assignee: string[];
+};
+
 type Store = {
   tasks: Task[];
   view: "kanban" | "list" | "timeline";
+  filters: Filters;
+
+  setTasks: (t: Task[]) => void;
   setView: (v: Store["view"]) => void;
-  setTasks: (tasks: Task[]) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
+  setFilters: (f: Partial<Filters>) => void;
 };
 
 export const useStore = create<Store>((set) => ({
   tasks: [],
   view: "kanban",
 
-  setView: (view) => set({ view }),
+  filters: {
+    status: [],
+    priority: [],
+    assignee: [],
+  },
+
   setTasks: (tasks) => set({ tasks }),
+  setView: (view) => set({ view }),
 
   updateTask: (id, updates) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) =>
+    set((s) => ({
+      tasks: s.tasks.map((t) =>
         t.id === id ? { ...t, ...updates } : t
       ),
+    })),
+
+  setFilters: (f) =>
+    set((s) => ({
+      filters: { ...s.filters, ...f },
     })),
 }));
