@@ -1,92 +1,184 @@
 # 🚀 Multi-View Project Tracker (Frontend)
 
-A high-performance, fully responsive **project management UI** built using **React + TypeScript**, featuring **Kanban, List, and Timeline views**, custom **drag-and-drop**, **virtual scrolling**, and **URL-synced filters**.
+A high-performance project management UI built using **React + TypeScript**, featuring **Kanban, List, and Timeline views**, along with **custom drag-and-drop**, **virtual scrolling**, and **URL-synced filters**.
 
-This project demonstrates advanced frontend engineering concepts such as state management, performance optimization, and custom UI logic — without relying on external UI or drag libraries.
+This project focuses on real-world frontend engineering challenges like performance optimization, UI state management, and custom interaction design without relying on external libraries.
 
 ---
 
 ## 📌 Features
 
-### 🧩 Multi-View Interface
+### 🧩 Multi-View System
 
 * **Kanban Board**
 
   * 4 columns: To Do, In Progress, In Review, Done
-  * Task cards with title, assignee, priority, and status
   * Custom drag-and-drop (no libraries)
+  * Task cards with priority, assignee, and status
 
 * **List View**
 
-  * Flat list of all tasks
-  * Virtual scrolling for handling 500+ tasks efficiently
-  * Smooth scrolling with minimal DOM rendering
+  * Flat list of tasks
+  * Virtual scrolling for performance
+  * Handles 500+ tasks smoothly
 
-* **Timeline (Gantt View)**
+* **Timeline View**
 
-  * Tasks displayed across a monthly timeline
-  * Horizontal scroll support
-  * Color-coded priority bars
-  * Dynamic tooltip with task details
-
----
-
-### ⚡ Performance Optimizations
-
-* Virtual scrolling (no external libraries)
-* Memoized filtering using `useMemo`
-* Efficient rendering for large datasets (500+ tasks)
+  * Gantt-style monthly timeline
+  * Color-coded task bars
+  * Hover tooltips with task details
 
 ---
 
-### 🎯 Custom Drag & Drop
+## ⚙️ Setup Instructions
 
-* Built using native pointer events
-* Works on both mouse and touch devices
-* Dynamic column detection
-* Smooth interaction without external libraries
+1. Clone the repository:
+
+```bash
+git clone <your-repo-link>
+cd project-tracker
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Run the development server:
+
+```bash
+npm run dev
+```
+
+4. Open in browser:
+
+```bash
+http://localhost:5173
+```
 
 ---
 
-### 🔍 Filters + URL Sync
+## 🧠 State Management Decision (Zustand)
 
-* Filter by:
+Zustand was chosen for state management because:
+
+* Lightweight and minimal boilerplate
+* No need for reducers or complex setup
+* Global state shared easily across multiple views
+* Avoids prop drilling
+* Better performance compared to Context API in frequent updates
+
+The store manages:
+
+* Task data
+* Current view (Kanban/List/Timeline)
+* Filters (status, priority, assignee)
+
+This ensures all views operate on the **same dataset without re-fetching**, allowing instant switching.
+
+---
+
+## ⚡ Virtual Scrolling (List View)
+
+To handle large datasets (500+ tasks), virtual scrolling was implemented manually without any external libraries.
+
+### Approach:
+
+* Fixed row height is used for each task
+* Based on scroll position, only visible rows are calculated
+* A small buffer (extra rows above and below) is rendered
+* Remaining space is filled using a spacer div
+
+### Key Logic:
+
+* `startIndex = scrollTop / rowHeight`
+* Only render items between `startIndex` and visible range
+* Use `transform: translateY(...)` to position items correctly
+
+### Benefits:
+
+* Reduces DOM nodes significantly
+* Improves performance and scrolling smoothness
+* No flickering or layout jumps
+
+---
+
+## 🎯 Custom Drag-and-Drop Implementation
+
+Drag-and-drop was implemented from scratch using **native pointer events** instead of external libraries.
+
+### Approach:
+
+* `onPointerDown` initializes drag
+* `pointerup` determines drop location
+* `document.elementFromPoint()` detects target column
+* Task status is updated based on drop position
+
+### Key Features:
+
+* Works for both mouse and touch
+* No external libraries used
+* Clean and lightweight implementation
+
+### Why Not Use Libraries?
+
+The assignment required a **custom implementation**, and this approach demonstrates a deeper understanding of DOM interaction and event handling.
+
+---
+
+## 🔍 Filters + URL Sync
+
+* Filters include:
 
   * Status
   * Priority
   * Assignee
-* Filters are reflected in URL query params
-* State restores on page refresh or navigation
+* Filters are reflected in the URL using query parameters
+* Example:
+
+```bash
+?status=todo&priority=high
+```
+
+### Benefits:
+
+* Shareable filtered views
+* State persistence on refresh
+* Better user experience
 
 ---
 
-### 🎨 Premium UI
+## 🎨 UI & Styling
 
-* Built using Tailwind CSS (no UI libraries)
-* Modern layout inspired by Jira / Notion
+* Built using **Tailwind CSS**
+* No UI component libraries used
+* Clean and modern design inspired by Jira
 * Smooth hover effects and transitions
-* Responsive design for desktop & tablet
 
 ---
 
-### 📊 Data Handling
+## ⚠️ Constraints Followed
 
-* 500+ tasks generated dynamically
-* Randomized:
-
-  * Status
-  * Priority
-  * Assignee
-  * Dates
+* ❌ No drag-and-drop libraries
+* ❌ No virtual scrolling libraries
+* ❌ No UI component libraries
+* ✅ Fully custom implementation
 
 ---
 
-## 🛠️ Tech Stack
+## 📊 Lighthouse Performance
 
-* **React (with TypeScript)**
-* **Zustand** – State Management
-* **Tailwind CSS** – Styling
-* **Vite** – Build Tool
+> Add your screenshot here
+
+* Performance Score: **85+ (Desktop)**
+
+Steps to generate:
+
+1. Open Chrome DevTools
+2. Go to Lighthouse tab
+3. Run audit (Desktop mode)
+4. Add screenshot in README
 
 ---
 
@@ -111,121 +203,31 @@ src/
 
 ---
 
-## ⚙️ Setup Instructions
-
-1. Clone the repository:
-
-```bash
-git clone <your-repo-link>
-cd project-tracker
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Run the project:
-
-```bash
-npm run dev
-```
-
----
-
-## 🧠 Key Implementation Details
-
-### 🔹 State Management (Zustand)
-
-Zustand is used for global state management to maintain:
-
-* Tasks
-* Filters
-* Current view
-
-It allows seamless data sharing across multiple views without prop drilling.
-
----
-
-### 🔹 Virtual Scrolling (List View)
-
-Instead of rendering all tasks:
-
-* Only visible rows are rendered
-* A buffer is added for smooth scrolling
-* Total height is maintained using spacer divs
-
-This ensures high performance even with large datasets.
-
----
-
-### 🔹 Custom Drag-and-Drop
-
-* Implemented using pointer events
-* No external libraries used
-* Column detection via DOM (`elementFromPoint`)
-* Updates task status on drop
-
----
-
-### 🔹 Timeline Rendering
-
-* Tasks are positioned using pixel calculations based on date
-* Width represents task duration
-* "Today" indicator shown dynamically
-* Tooltip provides additional task details on hover
-
----
-
-## ⚠️ Constraints Followed
-
-* ❌ No drag-and-drop libraries
-* ❌ No virtual scrolling libraries
-* ❌ No UI component libraries
-* ✅ Fully built with custom logic
-
----
-
-## 📸 Screenshots
-
-*Add screenshots here (Kanban / List / Timeline / Lighthouse Score)*
-
----
-
-## 📊 Lighthouse Score
-
-* Performance: 85+ (Desktop)
-
----
-
 ## 🚀 Future Improvements
 
 * Drag-and-drop animation enhancements
-* Timeline zoom (week/month view)
+* Timeline zoom (weekly/monthly view)
 * Real-time collaboration using WebSockets
-* Better mobile responsiveness
+* Improved mobile responsiveness
 
 ---
 
 ## ✍️ Author
 
 **Dipak Ghuge**
-
-* MERN Stack Developer
-* Passionate about frontend engineering & performance optimization
+Frontend Developer (MERN Stack)
 
 ---
 
 ## 💡 Conclusion
 
-This project demonstrates strong frontend engineering skills including:
+This project demonstrates strong frontend development skills including:
 
 * Performance optimization
-* UI/UX design
-* State architecture
-* Custom interaction handling
+* Custom UI interactions
+* State management
+* Scalable architecture
 
-It reflects real-world application development practices and problem-solving ability.
+It reflects real-world problem-solving and production-level thinking.
 
 ---
